@@ -20,7 +20,7 @@ DB_DATABASE=ad
 DB_PASS=12345678
 DB_PORT=5432
 ```
-
+- `npm i`
 - `npm run migrate:latest` (runs the knex migrations to add tables)
 - `npm run seed:run` (seeds initial data for testing)
 - `npm run start:dev` (starts the project at port 3000)
