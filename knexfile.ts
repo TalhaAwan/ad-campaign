@@ -16,6 +16,7 @@ const config: Knex.Config = {
     database: process.env.DB_DATABASE,
     port: Number(process.env.DB_PORT) || 5432,
     ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+    timezone: "UTC"
   },
   migrations: {
     tableName: 'knex_migrations',
