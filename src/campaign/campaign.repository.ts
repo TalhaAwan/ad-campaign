@@ -7,13 +7,36 @@ export class CampaignRepository {
   constructor(@Inject('POSTGRESQL_CONNECTION') private pg: MyPGPool) { }
 
   async getCampaign(id: string) {
-    const query = `SELECT * FROM campaign WHERE unique_id = $1 AND deleted = false`;
+    const campaignQuery = `
+    SELECT * 
+    FROM campaign 
+    WHERE unique_id = $1 AND deleted = false
+  `;
+    const adConsumptionQuery = `
+    SELECT * 
+    FROM ad_consumption 
+    WHERE campaign_id = (
+      SELECT id FROM campaign WHERE unique_id = $1 AND deleted = false
+    )
+  `;
     const values = [id];
     try {
-      const { rows } = await this.pg.query(query, values);
-      return rows[0];
+      const [campaignResult, adConsumptionResult] = await Promise.all(
+        [this.pg.query(campaignQuery, values),
+        this.pg.query(adConsumptionQuery, values)
+        ]);
+
+
+      if (!campaignResult.rows[0]) {
+        throw new Error(`Campaign with unique_id ${id} not found or deleted`);
+      }
+
+      return {
+        campaign: campaignResult.rows[0],
+        adConsumption: adConsumptionResult.rows,
+      };
     } catch (error) {
-      throw new Error(`Failed to retrieve campaign: ${error.message}`);
+      throw new Error(`Failed to retrieve campaign and ad consumption: ${error.message}`);
     }
   }
 
