@@ -7,7 +7,7 @@ export class CampaignRepository {
   constructor(@Inject('POSTGRESQL_CONNECTION') private pg: MyPGPool) { }
 
   async getCampaign(id: string) {
-    const query = `SELECT * FROM campaign WHERE id = $1 AND deleted = false`;
+    const query = `SELECT * FROM campaign WHERE unique_id = $1 AND deleted = false`;
     const values = [id];
     try {
       const { rows } = await this.pg.query(query, values);
