@@ -8,8 +8,8 @@ export async function up(knex: Knex): Promise<void> {
       .notNullable()
       .references("id")
       .inTable("campaign");
-    table.timestamp("month", { useTz: true }).notNullable();
-    table.timestamp("day", { useTz: true }).notNullable();
+    table.timestamp("month", { useTz: true }).nullable();
+    table.timestamp("day", { useTz: true }).nullable();
     table.integer("count").defaultTo(0).notNullable();
   });
 }
