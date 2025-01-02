@@ -4,7 +4,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable("campaign", (table) => {
     table.increments("id").primary();
     table.string("name", 50).notNullable();
-    table.string("unique_id", 20).notNullable().unique();
+    table.string("unique_id", 8).notNullable().unique();
     table.timestamp("start", { useTz: true }).notNullable();
     table.timestamp("end", { useTz: true }).notNullable();
     table
@@ -19,6 +19,7 @@ export async function up(knex: Knex): Promise<void> {
     table.decimal("total_budget", 10, 2).defaultTo(0);
     table.decimal("daily_budget", 10, 2).defaultTo(0);
     table.decimal("monthly_budget", 10, 2).defaultTo(0);
+    table.jsonb("day_parting").nullable();
   });
 }
 
