@@ -18,13 +18,24 @@ export class CampaignService {
     const now = new Date();
     const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const currentDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const currentHour = now.getUTCHours();
 
     const campaign = await this.campaignRepository.getCampaignByUniqueId(uniqueId);
     if (!campaign) {
       throw new HttpException({ message: `Campaign with unique_id ${uniqueId} not found or deleted` }, HttpStatus.BAD_REQUEST);
     }
 
-    const { id: campaignId, monthly_budget, daily_budget, budget } = campaign;
+    const { id: campaignId, monthly_budget, daily_budget, budget, day_parting } = campaign;
+
+    const isWithinDayParting = day_parting.some(([start, end]) => currentHour >= start && currentHour <= end);
+
+    if (!isWithinDayParting) {
+      throw new HttpException({
+        message: "Current hour is outside of allowed day parting hours",
+        currentHour,
+        allowedHours: day_parting
+      }, HttpStatus.FORBIDDEN);
+    }
 
     const [
       monthlyConsumption,
@@ -72,6 +83,7 @@ export class CampaignService {
       description: ad.description,
     };
   }
+
 
   async updateCampaign(body: UpdateCampaignDto) {
     const result = await this.campaignRepository.updateCampaign(body);

@@ -65,6 +65,7 @@ export async function seed(knex: Knex): Promise<void> {
           budget: 60,
           monthly_budget: 20,
           daily_budget: 5,
+          day_parting: JSON.stringify([[0, 3], [7, 11], [20, 22]]),
         })
         .returning("id")
         .then(([newRow]) => newRow.id)
