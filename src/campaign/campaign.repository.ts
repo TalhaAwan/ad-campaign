@@ -22,8 +22,9 @@ export class CampaignRepository {
     const values = [id];
     try {
       const [campaignResult, adConsumptionResult] = await Promise.all(
-        [this.pg.query(campaignQuery, values),
-        this.pg.query(adConsumptionQuery, values)
+        [
+          this.pg.query(campaignQuery, values),
+          this.pg.query(adConsumptionQuery, values)
         ]);
 
 
@@ -39,6 +40,92 @@ export class CampaignRepository {
       throw new Error(`Failed to retrieve campaign and ad consumption: ${error.message}`);
     }
   }
+
+  async getCampaignByUniqueId(uniqueId: string) {
+    const campaignQuery = `
+      SELECT * 
+      FROM campaign 
+      WHERE unique_id = $1 AND deleted = false
+    `;
+    const result = await this.pg.query(campaignQuery, [uniqueId]);
+    return result.rows[0];
+  }
+
+  async getMonthlyConsumption(campaignId: string, month: string) {
+    const query = `
+      SELECT * 
+      FROM ad_consumption 
+      WHERE campaign_id = $1 AND month = $2
+    `;
+    const result = await this.pg.query(query, [campaignId, month]);
+    return result.rows[0];
+  }
+
+  async getDailyConsumption(campaignId: string, day: string) {
+    const query = `
+      SELECT * 
+      FROM ad_consumption 
+      WHERE campaign_id = $1 AND day = $2
+    `;
+    const result = await this.pg.query(query, [campaignId, day]);
+    return result.rows[0];
+  }
+
+  async incrementConsumption(campaignId: string, period: 'month' | 'day', value: string) {
+    const query = `
+      UPDATE ad_consumption 
+      SET count = count + 1 
+      WHERE campaign_id = $1 AND ${period} = $2
+    `;
+    await this.pg.query(query, [campaignId, value]);
+  }
+
+  async createMonthlyConsumption(campaignId: string, month: string) {
+    const query = `
+      INSERT INTO ad_consumption (campaign_id, month, count) 
+      VALUES ($1, $2, 1)
+    `;
+    await this.pg.query(query, [campaignId, month]);
+  }
+
+  async createDailyConsumption(campaignId: string, day: string) {
+    const query = `
+      INSERT INTO ad_consumption (campaign_id, day, count) 
+      VALUES ($1, $2, 1)
+    `;
+    await this.pg.query(query, [campaignId, day]);
+  }
+
+  async getTotalConsumption(campaignId: string) {
+    const query = `
+      SELECT SUM(count) as total 
+      FROM ad_consumption 
+      WHERE campaign_id = $1
+    `;
+    const result = await this.pg.query(query, [campaignId]);
+    return result.rows[0]?.total || 0;
+  }
+
+  async logAdServe(campaignId: string, adId: number) {
+    const query = `
+      INSERT INTO ad_serve (campaign_id, ad_id, serve_time) 
+      VALUES ($1, $2, NOW())
+    `;
+    await this.pg.query(query, [campaignId, adId]);
+  }
+
+  async getFirstAdByCampaignId(campaignId: string) {
+    const query = `
+      SELECT id, name, description 
+      FROM ad 
+      WHERE campaign_id = $1 AND deleted = false 
+      ORDER BY id ASC 
+      LIMIT 1
+    `;
+    const result = await this.pg.query(query, [campaignId]);
+    return result.rows[0];
+  }
+
 
   async updateCampaign(body: UpdateCampaignDto) {
     const { Id, name, budget, monthly_budget, daily_budget } = body;
