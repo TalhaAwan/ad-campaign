@@ -26,17 +26,24 @@ export class CampaignService {
 
     const { id: campaignId, monthly_budget, daily_budget, budget } = campaign;
 
-    const monthlyConsumption = await this.campaignRepository.getMonthlyConsumption(campaignId, currentMonth);
+    const [
+      monthlyConsumption,
+      dailyConsumption,
+      totalConsumption
+    ] = await Promise.all([
+      this.campaignRepository.getMonthlyConsumption(campaignId, currentMonth),
+      this.campaignRepository.getDailyConsumption(campaignId, currentDay),
+      this.campaignRepository.getTotalConsumption(campaignId)
+    ]);
+
     if (monthlyConsumption && monthlyConsumption.count >= monthly_budget) {
       throw new HttpException({ message: "Monthly budget exceeded" }, HttpStatus.FORBIDDEN);
     }
 
-    const dailyConsumption = await this.campaignRepository.getDailyConsumption(campaignId, currentDay);
     if (dailyConsumption && dailyConsumption.count >= daily_budget) {
       throw new HttpException({ message: "Daily budget exceeded" }, HttpStatus.FORBIDDEN);
     }
 
-    const totalConsumption = await this.campaignRepository.getTotalConsumption(campaignId);
     if (totalConsumption >= budget) {
       throw new HttpException({ message: "Total budget exceeded" }, HttpStatus.FORBIDDEN);
     }
