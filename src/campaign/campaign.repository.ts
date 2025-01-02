@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Pool as MyPGPool } from 'pg';
 import { UpdateCampaignDto } from './dto/campaign.dto';
 
@@ -128,7 +128,7 @@ export class CampaignRepository {
 
 
   async updateCampaign(body: UpdateCampaignDto) {
-    const { Id, name, budget, monthly_budget, daily_budget } = body;
+    const { id, name, budget, monthly_budget, daily_budget, start, end, day_parting } = body;
 
     const updates = [];
     const values = [];
@@ -154,16 +154,29 @@ export class CampaignRepository {
       values.push(daily_budget);
     }
 
-    if (updates.length === 0) {
-      throw new Error('No fields provided for update.');
+    if (start && end) {
+      updates.push(`start = $${placeholderIndex++}`);
+      values.push(new Date(start));
+
+      updates.push(`"end" = $${placeholderIndex++}`);
+      values.push(new Date(end));
     }
 
-    values.push(Id);
+    if (day_parting) {
+      updates.push(`day_parting = $${placeholderIndex++}`);
+      values.push(JSON.stringify(day_parting));
+    }
+
+    if (updates.length === 0) {
+      throw new HttpException({ message: "No fields provided for update." }, HttpStatus.BAD_REQUEST);
+    }
+
+    values.push(id);
 
     const query = `
       UPDATE campaign
       SET ${updates.join(', ')}, updated_at = NOW()
-      WHERE id = $${placeholderIndex} AND deleted = false
+      WHERE unique_id = $${placeholderIndex} AND deleted = false
       RETURNING *;
     `;
 
@@ -174,4 +187,5 @@ export class CampaignRepository {
       throw new Error(`Failed to update campaign: ${error.message}`);
     }
   }
+
 }

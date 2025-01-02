@@ -86,6 +86,20 @@ export class CampaignService {
 
 
   async updateCampaign(body: UpdateCampaignDto) {
+    const { start, end } = body;
+
+    if (start && end) {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+
+      if (endDate < startDate) {
+        throw new HttpException(
+          { message: "end date can't be smaller than start" },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
     const result = await this.campaignRepository.updateCampaign(body);
     return result;
   }

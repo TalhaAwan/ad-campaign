@@ -12,7 +12,7 @@ export class CampaignController {
     return await this.campaignService.getCampaign(params.id);
   }
 
-  @Patch("/campaign/:id")
+  @Patch("/campaign")
   updateCampaign(@Body() body: UpdateCampaignDto) {
     return this.campaignService.updateCampaign(body);
   }
