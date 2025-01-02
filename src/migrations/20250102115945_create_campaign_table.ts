@@ -16,7 +16,7 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp("updated_at", { useTz: true }).defaultTo(knex.fn.now());
     table.boolean("deleted").defaultTo(false);
     table.timestamp("deleted_at", { useTz: true }).nullable();
-    table.decimal("total_budget", 10, 2).defaultTo(0);
+    table.decimal("budget", 10, 2).defaultTo(0);
     table.decimal("daily_budget", 10, 2).defaultTo(0);
     table.decimal("monthly_budget", 10, 2).defaultTo(0);
     table.jsonb("day_parting").nullable();
