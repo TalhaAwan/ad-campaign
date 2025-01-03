@@ -6,7 +6,7 @@ This project contains nest application that maintains, serves and records ad cam
 
 - node >= v20.15.0
 - npm >= 10.7.0
-- postgress database - ensure there's a database by the ename of `ad`
+- postgress database - ensure there's a database by the name of `ad`
 
 ## Initialize & run the project
 
